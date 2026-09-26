@@ -7,14 +7,23 @@ datasource db {
   provider = "sqlite"
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   firstname String
   lastname  String
-  email     String  @unique
+  email     String   @unique
   password  String
-  role      String  @default("USER")
-  isActive  Boolean @default(true)
+  role      Role     @default(USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  cartlines   cartlines[]
+  userRatings userRatings[]
 
   @@map("users")
 }
@@ -27,12 +36,16 @@ model poster {
   image       String
   width       Int
   height      Int
-  price       Float
+  price       Decimal
   stock       Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  genres genrePosterRel[]
+  genres      genrePosterRel[]
+  cartlines   cartlines[]
+  userRatings userRatings[]
+
+  @@map("posters")
 }
 
 model genre {
@@ -43,6 +56,8 @@ model genre {
   updatedAt DateTime @updatedAt
 
   posters genrePosterRel[]
+
+  @@map("genres")
 }
 
 model genrePosterRel {
@@ -52,4 +67,26 @@ model genrePosterRel {
   poster   poster @relation(fields: [posterId], references: [id])
 
   @@id([genreId, posterId])
+}
+
+model cartlines {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  posterId  Int
+  quantity  Int
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  poster poster @relation(fields: [posterId], references: [id])
+}
+
+model userRatings {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  posterId  Int
+  numStars  Int
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  poster poster @relation(fields: [posterId], references: [id])
 }
